@@ -1,6 +1,7 @@
 golang-github-rs-zerolog (1.12.0-3) UNRELEASED; urgency=low
 
   * Bump debhelper from old 11 to 12.
+  * Set debhelper-compat version in Build-Depends.
 
  -- Debian Janitor <janitor@jelmer.uk>  Sat, 13 Jun 2020 21:01:42 -0000
 
