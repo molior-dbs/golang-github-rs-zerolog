@@ -1,3 +1,9 @@
+golang-github-rs-zerolog (1.12.0-3) UNRELEASED; urgency=low
+
+  * Bump debhelper from old 11 to 12.
+
+ -- Debian Janitor <janitor@jelmer.uk>  Sat, 13 Jun 2020 21:01:42 -0000
+
 golang-github-rs-zerolog (1.12.0-2) unstable; urgency=medium
 
   * upload source package
