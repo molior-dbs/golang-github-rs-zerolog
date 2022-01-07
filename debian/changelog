@@ -1,3 +1,13 @@
+golang-github-rs-zerolog (1.26.1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Bump debhelper from old 12 to 13.
+  * Update standards version to 4.6.0, no changes needed.
+  * reverse dependencies successfully built with ratt:
+    - golang-github-jackc-pgx
+
+ -- Thorsten Alteholz <debian@alteholz.de>  Fri, 07 Jan 2022 01:39:35 +0100
+
 golang-github-rs-zerolog (1.20.0-1) unstable; urgency=low
 
   [ Debian Janitor ]

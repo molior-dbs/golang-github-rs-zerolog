@@ -77,6 +77,24 @@ func TestInfo(t *testing.T) {
 	})
 }
 
+func TestEmptyLevelFieldName(t *testing.T) {
+	fieldName := LevelFieldName
+	LevelFieldName = ""
+
+	t.Run("empty setting", func(t *testing.T) {
+		out := &bytes.Buffer{}
+		log := New(out)
+		log.Info().
+			Str("foo", "bar").
+			Int("n", 123).
+			Msg("")
+		if got, want := decodeIfBinaryToString(out.Bytes()), `{"foo":"bar","n":123}`+"\n"; got != want {
+			t.Errorf("invalid log output:\ngot:  %v\nwant: %v", got, want)
+		}
+	})
+	LevelFieldName = fieldName
+}
+
 func TestWith(t *testing.T) {
 	out := &bytes.Buffer{}
 	ctx := New(out).With().
@@ -228,6 +246,66 @@ func TestFieldsMapNilPnt(t *testing.T) {
 	}
 }
 
+func TestFieldsSlice(t *testing.T) {
+	out := &bytes.Buffer{}
+	log := New(out)
+	log.Log().Fields([]interface{}{
+		"nil", nil,
+		"string", "foo",
+		"bytes", []byte("bar"),
+		"error", errors.New("some error"),
+		"bool", true,
+		"int", int(1),
+		"int8", int8(2),
+		"int16", int16(3),
+		"int32", int32(4),
+		"int64", int64(5),
+		"uint", uint(6),
+		"uint8", uint8(7),
+		"uint16", uint16(8),
+		"uint32", uint32(9),
+		"uint64", uint64(10),
+		"float32", float32(11),
+		"float64", float64(12),
+		"ipv6", net.IP{0x20, 0x01, 0x0d, 0xb8, 0x85, 0xa3, 0x00, 0x00, 0x00, 0x00, 0x8a, 0x2e, 0x03, 0x70, 0x73, 0x34},
+		"dur", 1 * time.Second,
+		"time", time.Time{},
+		"obj", obj{"a", "b", 1},
+	}).Msg("")
+	if got, want := decodeIfBinaryToString(out.Bytes()), `{"nil":null,"string":"foo","bytes":"bar","error":"some error","bool":true,"int":1,"int8":2,"int16":3,"int32":4,"int64":5,"uint":6,"uint8":7,"uint16":8,"uint32":9,"uint64":10,"float32":11,"float64":12,"ipv6":"2001:db8:85a3::8a2e:370:7334","dur":1000,"time":"0001-01-01T00:00:00Z","obj":{"Pub":"a","Tag":"b","priv":1}}`+"\n"; got != want {
+		t.Errorf("invalid log output:\ngot:  %v\nwant: %v", got, want)
+	}
+}
+
+func TestFieldsSliceExtraneous(t *testing.T) {
+	out := &bytes.Buffer{}
+	log := New(out)
+	log.Log().Fields([]interface{}{
+		"string", "foo",
+		"error", errors.New("some error"),
+		32, "valueForNonStringKey",
+		"bool", true,
+		"int", int(1),
+		"keyWithoutValue",
+	}).Msg("")
+	if got, want := decodeIfBinaryToString(out.Bytes()), `{"string":"foo","error":"some error","bool":true,"int":1}`+"\n"; got != want {
+		t.Errorf("invalid log output:\ngot:  %v\nwant: %v", got, want)
+	}
+}
+
+func TestFieldsNotMapSlice(t *testing.T) {
+	out := &bytes.Buffer{}
+	log := New(out)
+	log.Log().
+		Fields(obj{"a", "b", 1}).
+		Fields("string").
+		Fields(1).
+		Msg("")
+	if got, want := decodeIfBinaryToString(out.Bytes()), `{}`+"\n"; got != want {
+		t.Errorf("invalid log output:\ngot:  %v\nwant: %v", got, want)
+	}
+}
+
 func TestFields(t *testing.T) {
 	out := &bytes.Buffer{}
 	log := New(out)
@@ -242,6 +320,7 @@ func TestFields(t *testing.T) {
 		Bytes("bytes", []byte("bar")).
 		Hex("hex", []byte{0x12, 0xef}).
 		RawJSON("json", []byte(`{"some":"json"}`)).
+		Func(func(e *Event) { e.Str("func", "func_output") }).
 		AnErr("some_err", nil).
 		Err(errors.New("some error")).
 		Bool("bool", true).
@@ -265,7 +344,7 @@ func TestFields(t *testing.T) {
 		Time("time", time.Time{}).
 		TimeDiff("diff", now, now.Add(-10*time.Second)).
 		Msg("")
-	if got, want := decodeIfBinaryToString(out.Bytes()), `{"caller":"`+caller+`","string":"foo","stringer":"127.0.0.1","stringer_nil":null,"bytes":"bar","hex":"12ef","json":{"some":"json"},"error":"some error","bool":true,"int":1,"int8":2,"int16":3,"int32":4,"int64":5,"uint":6,"uint8":7,"uint16":8,"uint32":9,"uint64":10,"IPv4":"192.168.0.100","IPv6":"2001:db8:85a3::8a2e:370:7334","Mac":"00:14:22:01:23:45","Prefix":"192.168.0.100/24","float32":11.1234,"float64":12.321321321,"dur":1000,"time":"0001-01-01T00:00:00Z","diff":10000}`+"\n"; got != want {
+	if got, want := decodeIfBinaryToString(out.Bytes()), `{"caller":"`+caller+`","string":"foo","stringer":"127.0.0.1","stringer_nil":null,"bytes":"bar","hex":"12ef","json":{"some":"json"},"func":"func_output","error":"some error","bool":true,"int":1,"int8":2,"int16":3,"int32":4,"int64":5,"uint":6,"uint8":7,"uint16":8,"uint32":9,"uint64":10,"IPv4":"192.168.0.100","IPv6":"2001:db8:85a3::8a2e:370:7334","Mac":"00:14:22:01:23:45","Prefix":"192.168.0.100/24","float32":11.1234,"float64":12.321321321,"dur":1000,"time":"0001-01-01T00:00:00Z","diff":10000}`+"\n"; got != want {
 		t.Errorf("invalid log output:\ngot:  %v\nwant: %v", got, want)
 	}
 }
@@ -275,6 +354,7 @@ func TestFieldsArrayEmpty(t *testing.T) {
 	log := New(out)
 	log.Log().
 		Strs("string", []string{}).
+		Stringers("stringer", []fmt.Stringer{}).
 		Errs("err", []error{}).
 		Bools("bool", []bool{}).
 		Ints("int", []int{}).
@@ -292,7 +372,7 @@ func TestFieldsArrayEmpty(t *testing.T) {
 		Durs("dur", []time.Duration{}).
 		Times("time", []time.Time{}).
 		Msg("")
-	if got, want := decodeIfBinaryToString(out.Bytes()), `{"string":[],"err":[],"bool":[],"int":[],"int8":[],"int16":[],"int32":[],"int64":[],"uint":[],"uint8":[],"uint16":[],"uint32":[],"uint64":[],"float32":[],"float64":[],"dur":[],"time":[]}`+"\n"; got != want {
+	if got, want := decodeIfBinaryToString(out.Bytes()), `{"string":[],"stringer":[],"err":[],"bool":[],"int":[],"int8":[],"int16":[],"int32":[],"int64":[],"uint":[],"uint8":[],"uint16":[],"uint32":[],"uint64":[],"float32":[],"float64":[],"dur":[],"time":[]}`+"\n"; got != want {
 		t.Errorf("invalid log output:\ngot:  %v\nwant: %v", got, want)
 	}
 }
@@ -302,6 +382,7 @@ func TestFieldsArraySingleElement(t *testing.T) {
 	log := New(out)
 	log.Log().
 		Strs("string", []string{"foo"}).
+		Stringers("stringer", []fmt.Stringer{net.IP{127, 0, 0, 1}}).
 		Errs("err", []error{errors.New("some error")}).
 		Bools("bool", []bool{true}).
 		Ints("int", []int{1}).
@@ -317,9 +398,9 @@ func TestFieldsArraySingleElement(t *testing.T) {
 		Floats32("float32", []float32{11}).
 		Floats64("float64", []float64{12}).
 		Durs("dur", []time.Duration{1 * time.Second}).
-		Times("time", []time.Time{time.Time{}}).
+		Times("time", []time.Time{{}}).
 		Msg("")
-	if got, want := decodeIfBinaryToString(out.Bytes()), `{"string":["foo"],"err":["some error"],"bool":[true],"int":[1],"int8":[2],"int16":[3],"int32":[4],"int64":[5],"uint":[6],"uint8":[7],"uint16":[8],"uint32":[9],"uint64":[10],"float32":[11],"float64":[12],"dur":[1000],"time":["0001-01-01T00:00:00Z"]}`+"\n"; got != want {
+	if got, want := decodeIfBinaryToString(out.Bytes()), `{"string":["foo"],"stringer":["127.0.0.1"],"err":["some error"],"bool":[true],"int":[1],"int8":[2],"int16":[3],"int32":[4],"int64":[5],"uint":[6],"uint8":[7],"uint16":[8],"uint32":[9],"uint64":[10],"float32":[11],"float64":[12],"dur":[1000],"time":["0001-01-01T00:00:00Z"]}`+"\n"; got != want {
 		t.Errorf("invalid log output:\ngot:  %v\nwant: %v", got, want)
 	}
 }
@@ -329,6 +410,7 @@ func TestFieldsArrayMultipleElement(t *testing.T) {
 	log := New(out)
 	log.Log().
 		Strs("string", []string{"foo", "bar"}).
+		Stringers("stringer", []fmt.Stringer{nil, net.IP{127, 0, 0, 1}}).
 		Errs("err", []error{errors.New("some error"), nil}).
 		Bools("bool", []bool{true, false}).
 		Ints("int", []int{1, 0}).
@@ -344,9 +426,9 @@ func TestFieldsArrayMultipleElement(t *testing.T) {
 		Floats32("float32", []float32{11, 0}).
 		Floats64("float64", []float64{12, 0}).
 		Durs("dur", []time.Duration{1 * time.Second, 0}).
-		Times("time", []time.Time{time.Time{}, time.Time{}}).
+		Times("time", []time.Time{{}, {}}).
 		Msg("")
-	if got, want := decodeIfBinaryToString(out.Bytes()), `{"string":["foo","bar"],"err":["some error",null],"bool":[true,false],"int":[1,0],"int8":[2,0],"int16":[3,0],"int32":[4,0],"int64":[5,0],"uint":[6,0],"uint8":[7,0],"uint16":[8,0],"uint32":[9,0],"uint64":[10,0],"float32":[11,0],"float64":[12,0],"dur":[1000,0],"time":["0001-01-01T00:00:00Z","0001-01-01T00:00:00Z"]}`+"\n"; got != want {
+	if got, want := decodeIfBinaryToString(out.Bytes()), `{"string":["foo","bar"],"stringer":[null,"127.0.0.1"],"err":["some error",null],"bool":[true,false],"int":[1,0],"int8":[2,0],"int16":[3,0],"int32":[4,0],"int64":[5,0],"uint":[6,0],"uint8":[7,0],"uint16":[8,0],"uint32":[9,0],"uint64":[10,0],"float32":[11,0],"float64":[12,0],"dur":[1000,0],"time":["0001-01-01T00:00:00Z","0001-01-01T00:00:00Z"]}`+"\n"; got != want {
 		t.Errorf("invalid log output:\ngot:  %v\nwant: %v", got, want)
 	}
 }
@@ -357,10 +439,12 @@ func TestFieldsDisabled(t *testing.T) {
 	now := time.Now()
 	log.Debug().
 		Str("string", "foo").
+		Stringer("stringer", net.IP{127, 0, 0, 1}).
 		Bytes("bytes", []byte("bar")).
 		Hex("hex", []byte{0x12, 0xef}).
 		AnErr("some_err", nil).
 		Err(errors.New("some error")).
+		Func(func(e *Event) { e.Str("func", "func_output") }).
 		Bool("bool", true).
 		Int("int", 1).
 		Int8("int8", 2).
@@ -529,7 +613,11 @@ func TestLevelWriter(t *testing.T) {
 			p string
 		}{},
 	}
-	log := New(lw)
+
+	// Allow extra-verbose logs.
+	SetGlobalLevel(TraceLevel - 1)
+	log := New(lw).Level(TraceLevel - 1)
+
 	log.Trace().Msg("0")
 	log.Debug().Msg("1")
 	log.Info().Msg("2")
@@ -542,6 +630,9 @@ func TestLevelWriter(t *testing.T) {
 	log.WithLevel(WarnLevel).Msg("8")
 	log.WithLevel(ErrorLevel).Msg("9")
 	log.WithLevel(NoLevel).Msg("nolevel-2")
+	log.WithLevel(-1).Msg("-1") // Same as TraceLevel
+	log.WithLevel(-2).Msg("-2") // Will log
+	log.WithLevel(-3).Msg("-3") // Will not log
 
 	want := []struct {
 		l Level
@@ -559,6 +650,8 @@ func TestLevelWriter(t *testing.T) {
 		{WarnLevel, `{"level":"warn","message":"8"}` + "\n"},
 		{ErrorLevel, `{"level":"error","message":"9"}` + "\n"},
 		{NoLevel, `{"message":"nolevel-2"}` + "\n"},
+		{Level(-1), `{"level":"trace","message":"-1"}` + "\n"},
+		{Level(-2), `{"level":"-2","message":"-2"}` + "\n"},
 	}
 	if got := lw.ops; !reflect.DeepEqual(got, want) {
 		t.Errorf("invalid ops:\ngot:\n%v\nwant:\n%v", got, want)
@@ -786,5 +879,67 @@ func TestUpdateEmptyContext(t *testing.T) {
 
 	if got := decodeIfBinaryToString(buf.Bytes()); got != want {
 		t.Errorf("invalid log output:\ngot:  %q\nwant: %q", got, want)
+	}
+}
+
+func TestLevel_String(t *testing.T) {
+	tests := []struct {
+		name string
+		l    Level
+		want string
+	}{
+		{"trace", TraceLevel, "trace"},
+		{"debug", DebugLevel, "debug"},
+		{"info", InfoLevel, "info"},
+		{"warn", WarnLevel, "warn"},
+		{"error", ErrorLevel, "error"},
+		{"fatal", FatalLevel, "fatal"},
+		{"panic", PanicLevel, "panic"},
+		{"disabled", Disabled, "disabled"},
+		{"nolevel", NoLevel, ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.l.String(); got != tt.want {
+				t.Errorf("String() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestParseLevel(t *testing.T) {
+	type args struct {
+		levelStr string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    Level
+		wantErr bool
+	}{
+		{"trace", args{"trace"}, TraceLevel, false},
+		{"debug", args{"debug"}, DebugLevel, false},
+		{"info", args{"info"}, InfoLevel, false},
+		{"warn", args{"warn"}, WarnLevel, false},
+		{"error", args{"error"}, ErrorLevel, false},
+		{"fatal", args{"fatal"}, FatalLevel, false},
+		{"panic", args{"panic"}, PanicLevel, false},
+		{"disabled", args{"disabled"}, Disabled, false},
+		{"nolevel", args{""}, NoLevel, false},
+		{"-1", args{"-1"}, TraceLevel, false},
+		{"-2", args{"-2"}, Level(-2), false},
+		{"-3", args{"-3"}, Level(-3), false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ParseLevel(tt.args.levelStr)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ParseLevel() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("ParseLevel() got = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }

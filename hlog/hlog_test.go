@@ -4,16 +4,16 @@ package hlog
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
+	"reflect"
 	"testing"
 
-	"reflect"
-
-	"net/http/httptest"
-
+	"github.com/rs/xid"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/internal/cbor"
 )
@@ -100,7 +100,7 @@ func TestRemoteAddrHandler(t *testing.T) {
 	}))
 	h = NewHandler(zerolog.New(out))(h)
 	h.ServeHTTP(nil, r)
-	if want, got := `{"ip":"1.2.3.4"}`+"\n", decodeIfBinary(out); want != got {
+	if want, got := `{"ip":"1.2.3.4:1234"}`+"\n", decodeIfBinary(out); want != got {
 		t.Errorf("Invalid log output, got: %s, want: %s", got, want)
 	}
 }
@@ -116,7 +116,7 @@ func TestRemoteAddrHandlerIPv6(t *testing.T) {
 	}))
 	h = NewHandler(zerolog.New(out))(h)
 	h.ServeHTTP(nil, r)
-	if want, got := `{"ip":"2001:db8:a0b:12f0::1"}`+"\n", decodeIfBinary(out); want != got {
+	if want, got := `{"ip":"[2001:db8:a0b:12f0::1]:1234"}`+"\n", decodeIfBinary(out); want != got {
 		t.Errorf("Invalid log output, got: %s, want: %s", got, want)
 	}
 }
@@ -261,4 +261,17 @@ func BenchmarkDataRace(b *testing.B) {
 			h.ServeHTTP(nil, &http.Request{})
 		}
 	})
+}
+
+func TestCtxWithID(t *testing.T) {
+	ctx := context.Background()
+
+	id, _ := xid.FromString(`c0umremcie6smuu506pg`)
+
+	want := context.Background()
+	want = context.WithValue(want, idKey{}, id)
+
+	if got := CtxWithID(ctx, id); !reflect.DeepEqual(got, want) {
+		t.Errorf("CtxWithID() = %v, want %v", got, want)
+	}
 }
