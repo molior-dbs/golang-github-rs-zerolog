@@ -238,11 +238,15 @@ func ExampleEvent_Array() {
 		Str("foo", "bar").
 		Array("array", zerolog.Arr().
 			Str("baz").
-			Int(1),
+			Int(1).
+			Dict(zerolog.Dict().
+				Str("bar", "baz").
+				Int("n", 1),
+			),
 		).
 		Msg("hello world")
 
-	// Output: {"foo":"bar","array":["baz",1],"message":"hello world"}
+	// Output: {"foo":"bar","array":["baz",1,{"bar":"baz","n":1}],"message":"hello world"}
 }
 
 func ExampleEvent_Array_object() {
@@ -333,6 +337,38 @@ func ExampleEvent_Durs() {
 		Msg("hello world")
 
 	// Output: {"foo":"bar","durs":[10000,20000],"message":"hello world"}
+}
+
+func ExampleEvent_Fields_map() {
+	fields := map[string]interface{}{
+		"bar": "baz",
+		"n":   1,
+	}
+
+	log := zerolog.New(os.Stdout)
+
+	log.Log().
+		Str("foo", "bar").
+		Fields(fields).
+		Msg("hello world")
+
+	// Output: {"foo":"bar","bar":"baz","n":1,"message":"hello world"}
+}
+
+func ExampleEvent_Fields_slice() {
+	fields := []interface{}{
+		"bar", "baz",
+		"n", 1,
+	}
+
+	log := zerolog.New(os.Stdout)
+
+	log.Log().
+		Str("foo", "bar").
+		Fields(fields).
+		Msg("hello world")
+
+	// Output: {"foo":"bar","bar":"baz","n":1,"message":"hello world"}
 }
 
 func ExampleContext_Dict() {
@@ -483,4 +519,36 @@ func ExampleContext_MacAddr() {
 	log.Log().Msg("hello world")
 
 	// Output: {"hostMAC":"00:14:22:01:23:45","message":"hello world"}
+}
+
+func ExampleContext_Fields_map() {
+	fields := map[string]interface{}{
+		"bar": "baz",
+		"n":   1,
+	}
+
+	log := zerolog.New(os.Stdout).With().
+		Str("foo", "bar").
+		Fields(fields).
+		Logger()
+
+	log.Log().Msg("hello world")
+
+	// Output: {"foo":"bar","bar":"baz","n":1,"message":"hello world"}
+}
+
+func ExampleContext_Fields_slice() {
+	fields := []interface{}{
+		"bar", "baz",
+		"n", 1,
+	}
+
+	log := zerolog.New(os.Stdout).With().
+		Str("foo", "bar").
+		Fields(fields).
+		Logger()
+
+	log.Log().Msg("hello world")
+
+	// Output: {"foo":"bar","bar":"baz","n":1,"message":"hello world"}
 }
