@@ -2,14 +2,14 @@ Source: golang-github-rs-zerolog
 Section: devel
 Priority: optional
 Maintainer: Debian Go Packaging Team <team+pkg-go@tracker.debian.org>
-Uploaders: Thorsten Alteholz <debian@alteholz.de>
+Uploaders: Thorsten Alteholz <debian@alteholz.de>,
 Build-Depends: debhelper-compat (= 13),
                dh-golang,
                golang-any,
                golang-github-coreos-go-systemd-dev,
                golang-github-pkg-errors-dev,
                golang-github-rs-xid-dev,
-               golang-golang-x-tools-dev
+               golang-golang-x-tools-dev,
 Standards-Version: 4.6.0
 Homepage: https://github.com/rs/zerolog
 Vcs-Browser: https://salsa.debian.org/go-team/packages/golang-github-rs-zerolog
@@ -19,11 +19,11 @@ Testsuite: autopkgtest-pkg-go
 
 Package: golang-github-rs-zerolog-dev
 Architecture: all
-Depends: ${misc:Depends},
-         golang-github-coreos-go-systemd-dev,
+Depends: golang-github-coreos-go-systemd-dev,
          golang-github-pkg-errors-dev,
          golang-github-rs-xid-dev,
-         golang-golang-x-tools-dev
+         golang-golang-x-tools-dev,
+         ${misc:Depends},
 Description: Zero Allocation JSON Logger
  This zerolog package provides a fast and simple logger dedicated to
  JSON output.
