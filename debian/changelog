@@ -1,3 +1,9 @@
+golang-github-rs-zerolog (1.29.0-3) unstable; urgency=medium
+
+  * debian: use backports go
+
+ -- André Roth <andre.roth@roche.com>  Sun, 19 Mar 2023 11:56:45 +0100
+
 golang-github-rs-zerolog (1.29.0-2) unstable; urgency=medium
 
   * debian: add dependency
