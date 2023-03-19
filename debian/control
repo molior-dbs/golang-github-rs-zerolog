@@ -5,7 +5,7 @@ Maintainer: Debian Go Packaging Team <team+pkg-go@tracker.debian.org>
 Uploaders: Thorsten Alteholz <debian@alteholz.de>,
 Build-Depends: debhelper-compat (= 13),
                dh-sequence-golang,
-               golang-any,
+               golang-any (> 2:1.15),
                golang-github-coreos-go-systemd-dev,
                golang-github-pkg-errors-dev,
                golang-github-rs-xid-dev,
