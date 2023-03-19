@@ -1,0 +1,39 @@
+Source: golang-github-rs-zerolog
+Section: golang
+Priority: optional
+Maintainer: Debian Go Packaging Team <team+pkg-go@tracker.debian.org>
+Uploaders: Thorsten Alteholz <debian@alteholz.de>,
+Build-Depends: debhelper-compat (= 13),
+               dh-sequence-golang,
+               golang-any,
+               golang-github-coreos-go-systemd-dev,
+               golang-github-pkg-errors-dev,
+               golang-github-rs-xid-dev,
+               golang-golang-x-tools-dev,
+               git-core
+Standards-Version: 4.6.1
+Homepage: https://github.com/rs/zerolog
+Vcs-Browser: https://salsa.debian.org/go-team/packages/golang-github-rs-zerolog
+Vcs-Git: https://salsa.debian.org/go-team/packages/golang-github-rs-zerolog.git
+XS-Go-Import-Path: github.com/rs/zerolog
+Testsuite: autopkgtest-pkg-go
+Rules-Requires-Root: no
+
+Package: golang-github-rs-zerolog-dev
+Architecture: all
+Depends: golang-github-coreos-go-systemd-dev,
+         golang-github-pkg-errors-dev,
+         golang-github-rs-xid-dev,
+         golang-golang-x-tools-dev,
+         ${misc:Depends},
+Description: Zero Allocation JSON Logger
+ This zerolog package provides a fast and simple logger dedicated to
+ JSON output.
+ .
+ Zerolog's API is designed to provide both a great developer experience and
+ stunning performance. Its unique chaining API allows zerolog to write JSON
+ (or CBOR) log events by avoiding allocations and reflection.
+ .
+ To keep the code base and the API simple, zerolog focuses on efficient
+ structured logging only. Pretty logging on the console is made
+ possible using the provided (but inefficient) zerolog.ConsoleWriter.
