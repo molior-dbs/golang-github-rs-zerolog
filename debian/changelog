@@ -1,3 +1,9 @@
+golang-github-rs-zerolog (1.29.0-2) unstable; urgency=medium
+
+  * debian: add dependency
+
+ -- André Roth <andre.roth@roche.com>  Sun, 19 Mar 2023 11:55:21 +0100
+
 golang-github-rs-zerolog (1.29.0-1) unstable; urgency=medium
 
   * debianize
