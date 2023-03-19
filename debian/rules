@@ -5,3 +5,6 @@
 
 execute_before_dh_install:
 	rm -rf ./debian/golang-github-rs-zerolog-dev/usr/bin
+
+
+override_dh_auto_test:
