@@ -1,3 +1,30 @@
+golang-github-rs-zerolog (1.29.0-1) unstable; urgency=medium
+
+  * debianize
+  * Fix missing cbor encoder AppendType method
+  * Use recent go versions in test workflow (#519)
+  * Add Any field function (#515)
+  * parsing CAPS log levels (#506)
+  * Fix console formatter for timestampunixnano (#502)
+  * Fix docs and behavior of WithContext (#499)
+  * ConsoleWriter fallbacks to local timezone for missing TZ indicator
+    (#497)
+  * Adding Event.Type(...) method to log the type of an object (#437)
+  * Show original level message if it's not predefined value. (#476)
+  * Avoid race in diode.Close with waiter (#481)
+  * Update example of usage CallerMarshalFunc (#475)
+  * CLI utility to pipe JSON logs through to pretty print and colorize
+    them (#449)
+  * pass program counter to CallerMarshalFunc (#457)
+  * Support extra arbitrary data at the end of console log (#416)
+  * Unixnano time format support (#454)
+  * Bump actions/cache from 3.0.1 to 3.0.5 (#453)
+  * Revert "remove fields written into "PartsOrder" (#383)"
+  * hlog: adds ProtoHandler (#396)
+  * ...
+
+ -- André Roth <andre.roth@roche.com>  Sun, 19 Mar 2023 11:52:28 +0100
+
 golang-github-rs-zerolog (1.26.1-4) unstable; urgency=medium
 
   * debian: disable tests
